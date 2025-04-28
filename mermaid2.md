@@ -1,4 +1,4 @@
-erDiagram
+```erDiagram
     USER {
         ObjectId _id PK
         String name
