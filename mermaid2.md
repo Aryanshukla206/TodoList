@@ -1,21 +1,24 @@
 ```mermaid
 erDiagram
     USER {
-        ObjectId _id PK
+        ObjectId _id
         String name
-        String email (unique)
-        String password (hashed)
+        String email UNIQUE
+        String password
         Enum role "host/player"
+        Array tournamentRoles "tournamentId, role (host/player)"
         Object stats "wins, losses, points, achievements"
         Number virtualMoney
         Date createdAt
     }
 
     TOURNAMENT {
-        ObjectId _id PK
+        ObjectId _id
         String name
-        ObjectId hostId FK "User"
-        String uniqueCode (unique)
+        ObjectId hostId "ref: USER"
+        String uniqueCode UNIQUE
+        Array sports "ref: SPORT"
+        Array participants "userId, status (pending/registered)"
         Date startDate
         Date endDate
         Enum status "upcoming/live/completed"
@@ -23,68 +26,66 @@ erDiagram
         Date createdAt
     }
 
-    PARTICIPATION {
-        ObjectId _id PK
-        ObjectId tournamentId FK "Tournament"
-        ObjectId userId FK "User"
-        Enum role "host/player"
-        Enum status "pending/registered"
-        Array sports "Array of sportIds"
-    }
-
     SPORT {
-        ObjectId _id PK
-        ObjectId tournamentId FK "Tournament"
+        ObjectId _id
+        ObjectId tournamentId "ref: TOURNAMENT"
         String name
         Enum type "individual/team"
         Number maxPlayers
-        Array participantIds "UserIds"
+        Array participants "ref: USER"
+        Array matches "ref: MATCH"
     }
 
     MATCH {
-        ObjectId _id PK
-        ObjectId sportId FK "Sport"
-        ObjectId tournamentId FK "Tournament"
-        ObjectId player1 FK "User"
-        ObjectId player2 FK "User"
-        ObjectId winner FK "User"
+        ObjectId _id
+        ObjectId sportId "ref: SPORT"
+        ObjectId tournamentId "ref: TOURNAMENT"
+        ObjectId player1 "ref: USER"
+        ObjectId player2 "ref: USER"
+        ObjectId winner "ref: USER"
         String score
         Enum status "pending/completed"
+        Date matchDate
     }
 
     AUCTION {
-        ObjectId _id PK
-        ObjectId tournamentId FK "Tournament"
-        ObjectId sportId FK "Sport"
+        ObjectId _id
+        ObjectId tournamentId "ref: TOURNAMENT"
+        ObjectId sportId "ref: SPORT"
         Enum status "open/closed"
+        Array teams "ref: TEAM"
+        Date createdAt
     }
 
     TEAM {
-        ObjectId _id PK
-        ObjectId auctionId FK "Auction"
-        String teamName
-        ObjectId captainId FK "User"
+        ObjectId _id
+        ObjectId auctionId "ref: AUCTION"
+        String name
+        ObjectId captain "ref: USER"
+        Array players "ref: USER"
         Number budget
-        Array playerIds "UserIds"
-        Array bids "Embedded bid objects"
+        Array bids "ref: BID"
     }
 
     BID {
-        ObjectId _id PK
-        ObjectId auctionId FK "Auction"
-        ObjectId playerId FK "User"
-        ObjectId bidderId FK "User"
+        ObjectId _id
+        ObjectId auctionId "ref: AUCTION"
+        ObjectId teamId "ref: TEAM"
+        ObjectId playerId "ref: USER"
+        ObjectId bidderId "ref: USER"
         Number amount
-        Enum status "active/won"
+        Enum status "active/won/expired"
+        Date createdAt
     }
 
-    USER ||--o{ PARTICIPATION : "participates"
-    TOURNAMENT ||--o{ PARTICIPATION : "has"
-    TOURNAMENT ||--o{ SPORT : "contains"
-    SPORT ||--o{ MATCH : "has"
-    USER ||--o{ MATCH : "plays"
-    TOURNAMENT ||--o{ AUCTION : "organizes"
-    AUCTION ||--o{ TEAM : "creates"
-    TEAM ||--o{ BID : "places"
-    USER ||--o{ BID : "bids"
+    USER ||--o{ TOURNAMENT : hosts
+    USER ||--o{ TOURNAMENT : joins
+    TOURNAMENT ||--o{ SPORT : contains
+    SPORT ||--o{ MATCH : schedules
+    USER ||--o{ MATCH : plays_in
+    USER ||--o{ BID : bids_for
+    TOURNAMENT ||--o{ AUCTION : organizes
+    AUCTION ||--o{ TEAM : includes
+    TEAM ||--o{ BID : makes
+    USER ||--o{ TEAM : joins
 ```
