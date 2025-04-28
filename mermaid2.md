@@ -1,4 +1,5 @@
-```erDiagram
+```mermaid
+erDiagram
     USER {
         ObjectId _id PK
         String name
@@ -86,3 +87,4 @@
     AUCTION ||--o{ TEAM : "creates"
     TEAM ||--o{ BID : "places"
     USER ||--o{ BID : "bids"
+```
